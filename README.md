@@ -27,3 +27,10 @@ Usage of ./out/s3-reload:
 ### License
 
 This project is [Apache Licensed](LICENSE.txt)
+
+### Credentials
+
+#### AWS
+
+s3-reload uses the default AWS [credentials chain](https://docs.aws.amazon.com/sdk-for-go/v1/developer-guide/configuring-sdk.html).
+In addition, the `AWS_REGION` environment variable should be set.
