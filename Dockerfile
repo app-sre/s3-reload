@@ -1,5 +1,6 @@
-ARG BASEIMAGE=busybox
-FROM $BASEIMAGE
+FROM alpine:3.8
+
+RUN apk --no-cache add ca-certificates
 
 USER 65534
 
