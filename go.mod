@@ -1,9 +1,8 @@
 module github.com/maorfr/s3-reload
 
-go 1.12
+go 1.13
 
 require (
-	github.com/fsnotify/fsnotify v1.4.7
-	github.com/prometheus/client_golang v1.0.0
-	golang.org/x/sys v0.0.0-20190621062556-bf70e4678053 // indirect
+	github.com/maorfr/csnotify v0.0.0-20191013073302-19108bcdeaf0 // indirect
+	github.com/prometheus/client_golang v1.1.0 // indirect
 )

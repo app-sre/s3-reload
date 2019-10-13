@@ -7,11 +7,10 @@ import (
 	"net/http"
 	"net/url"
 	"os"
-	"path/filepath"
 	"strconv"
 	"time"
 
-	fsnotify "github.com/fsnotify/fsnotify"
+	csnotify "github.com/maorfr/csnotify"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
@@ -68,7 +67,7 @@ func init() {
 }
 
 func main() {
-	flag.Var(&s3Paths, "s3-path", "S3 path to watch for updates; may be used multiple times (example: s3://my-bucket/path/to/watch)")
+	flag.Var(&s3Paths, "s3-path", "S3 object path to watch for updates; may be used multiple times (example: s3://my-bucket/path/to/watch)")
 	flag.Var(&webhook, "webhook-url", "the url to send a request to when the specified S3 path has been updated")
 	flag.Parse()
 
@@ -86,11 +85,10 @@ func main() {
 		os.Exit(1)
 	}
 
-	watcher, err := fsnotify.NewWatcher()
+	watcher, err := csnotify.NewWatcher()
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer watcher.Close()
 
 	go func() {
 		for {
@@ -99,7 +97,7 @@ func main() {
 				if !isValidEvent(event) {
 					continue
 				}
-				log.Println("config map updated")
+				log.Println("S3 object updated")
 				for _, h := range webhook {
 					begun := time.Now()
 					req, err := http.NewRequest(*webhookMethod, h.String(), nil)
@@ -138,11 +136,8 @@ func main() {
 	}()
 
 	for _, p := range s3Paths {
-		log.Printf("Watching path: %q", p)
-		err = watcher.Add(p)
-		if err != nil {
-			log.Fatal(err)
-		}
+		log.Printf("Watching object in path: %q", p)
+		watcher.Add(p)
 	}
 
 	log.Fatal(serverMetrics(*listenAddress, *metricPath))
@@ -159,13 +154,8 @@ func setSuccessMetrict(h string, begun time.Time) {
 	lastReloadError.WithLabelValues(h).Set(0.0)
 }
 
-func isValidEvent(event fsnotify.Event) bool {
-	if event.Op&fsnotify.Create != fsnotify.Create {
-		return false
-	}
-	if filepath.Base(event.Name) != "..data" {
-		return false
-	}
+func isValidEvent(event csnotify.Event) bool {
+	// validate the event as we enhance it
 	return true
 }
 
