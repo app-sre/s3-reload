@@ -1,4 +1,4 @@
-# Kubernetes S3 Reload
+# S3 Reload
 
 **s3-reload** is a simple binary to trigger a reload when an object in an S3 bucket is updated.
 It watches the object in the defined path in an S3 bucket and notifies the target process that the object has been changed.
