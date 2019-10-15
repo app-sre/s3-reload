@@ -1,93 +1,19 @@
-# Copyright 2019 Red Hat, Inc.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+IMAGE_NAME := quay.io/app-sre/s3-reload
+IMAGE_TAG := $(shell git rev-parse --short=7 HEAD)
 
-SHELL := /bin/bash -euo pipefail
+ifneq (,$(wildcard $(CURDIR)/.docker))
+	DOCKER_CONF := $(CURDIR)/.docker
+else
+	DOCKER_CONF := $(HOME)/.docker
+endif
 
-# Use the native vendor/ dependency system
-export GO111MODULE := on
-export CGO_ENABLED := 0
 
-GOOS ?= $(shell go env GOOS)
-GOARCH ?= $(shell go env GOARCH)
-ORG := github.com/maorfr
-REPOPATH ?= $(ORG)/s3-reload
-DOCKER_IMAGE_NAME ?= maorfr/s3-reload
-DOCKER_IMAGE_TAG ?= latest
-
-LDFLAGS := -s -w -extldflags '-static'
-
-SRCFILES := $(shell find . ! -path './out/*' ! -path './.git/*' -type f)
-
-ALL_ARCH=amd64 arm arm64 ppc64le s390x
-ML_PLATFORMS=$(addprefix linux/,$(ALL_ARCH))
-ALL_BINARIES ?= $(addprefix out/s3-reload-, \
-									$(addprefix linux-,$(ALL_ARCH)) \
-									darwin-amd64 \
-									windows-amd64.exe)
-
-DEFAULT_BASEIMAGE_amd64   := busybox
-DEFAULT_BASEIMAGE_arm     := armhf/busybox
-DEFAULT_BASEIMAGE_arm64   := aarch64/busybox
-DEFAULT_BASEIMAGE_ppc64le := ppc64le/busybox
-DEFAULT_BASEIMAGE_s390x   := s390x/busybox
-
-BASEIMAGE ?= $(DEFAULT_BASEIMAGE_$(GOARCH))
-
-BINARY=s3-reload-linux-$(GOARCH)
-
-out/s3-reload: out/s3-reload-$(GOOS)-$(GOARCH)
-	cp out/s3-reload-$(GOOS)-$(GOARCH) out/s3-reload
-
-out/s3-reload-%: $(SRCFILES)
-	GOARCH=$(word 2,$(subst -, ,$(*:.exe=))) GOOS=$(word 1,$(subst -, ,$(*:.exe=))) \
-		go build --installsuffix cgo -ldflags="$(LDFLAGS)" -a \
-		-o $@ s3-reload.go
-
-.PHONY: cross
-cross: $(ALL_BINARIES)
-
-.PHONY: checksum
-checksum:
-	for f in $(ALL_BINARIES) ; do \
-		if [ -f "$${f}" ]; then \
-			openssl sha256 "$${f}" | awk '{print $$2}' > "$${f}.sha256" ; \
-		fi ; \
-	done
-
-.PHONY: clean
-clean:
-	rm -rf out
-
-.PHONY: docker
-docker: out/s3-reload-$(GOOS)-$(GOARCH) Dockerfile
-	docker build --build-arg BASEIMAGE=$(BASEIMAGE) --build-arg BINARY=$(BINARY) -t $(DOCKER_IMAGE_NAME):$(DOCKER_IMAGE_TAG)-$(GOARCH) .
-
-manifest-tool:
-	curl -fsSL https://github.com/estesp/manifest-tool/releases/download/v1.0.0-rc3/manifest-tool-linux-amd64 > ./manifest-tool
-	chmod +x ./manifest-tool
-
-.PHONY: push-%
-push-%:
-	$(MAKE) GOARCH=$* docker
-	docker push $(DOCKER_IMAGE_NAME):$(DOCKER_IMAGE_TAG)-$*
+.PHONY: build
+build:
+	@docker build -t $(IMAGE_NAME):latest .
+	@docker tag $(IMAGE_NAME):latest $(IMAGE_NAME):$(IMAGE_TAG)
 
 .PHONY: push
-push: manifest-tool $(addprefix push-,$(ALL_ARCH)) manifest-push
-
-comma:= ,
-empty:=
-space:= $(empty) $(empty)
-.PHONY: manifest-push
-manifest-push: manifest-tool
-	./manifest-tool push from-args --platforms $(subst $(space),$(comma),$(ML_PLATFORMS)) --template $(DOCKER_IMAGE_NAME):$(DOCKER_IMAGE_TAG)-ARCH --target $(DOCKER_IMAGE_NAME):$(DOCKER_IMAGE_TAG)
+push:
+	@docker --config=$(DOCKER_CONF) push $(IMAGE_NAME):latest
+	@docker --config=$(DOCKER_CONF) push $(IMAGE_NAME):$(IMAGE_TAG)
