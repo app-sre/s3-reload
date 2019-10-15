@@ -20,9 +20,9 @@ export CGO_ENABLED := 0
 
 GOOS ?= $(shell go env GOOS)
 GOARCH ?= $(shell go env GOARCH)
-ORG := github.com/maorfr
+ORG := github.com/app-sre
 REPOPATH ?= $(ORG)/s3-reload
-DOCKER_IMAGE_NAME ?= maorfr/s3-reload
+DOCKER_IMAGE_NAME ?= app-sre/s3-reload
 DOCKER_IMAGE_TAG ?= latest
 
 LDFLAGS := -s -w -extldflags '-static'

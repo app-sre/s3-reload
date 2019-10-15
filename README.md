@@ -4,9 +4,9 @@
 It watches the object in the defined path in an S3 bucket and notifies the target process that the object has been changed.
 It currently only supports sending an HTTP request.
 
-It is available as a Docker image at https://hub.docker.com/r/maorfr/s3-reload
+It is available as a Docker image at https://quay.io/repository/app-sre/s3-reload
 
-Uses [maorfr/csnotify](https://github.com/maorfr/csnotify) under the hood.
+Uses [app-sre/csnotify](https://github.com/app-sre/csnotify) under the hood.
 
 Inspired by [jimmidyson/configmap-reload](https://github.com/jimmidyson/configmap-reload).
 
