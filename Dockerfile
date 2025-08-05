@@ -3,6 +3,6 @@ COPY . .
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o out/s3-reload s3-reload.go
 LABEL konflux.additional-tags="1.0.0"
 
-FROM registry.access.redhat.com/ubi9-minimal:9.6-1754000177@sha256:0d7cfb0704f6d389942150a01a20cb182dc8ca872004ebf19010e2b622818926
+FROM registry.access.redhat.com/ubi9-minimal:9.6-1754356396@sha256:295f920819a6d05551a1ed50a6c71cb39416a362df12fa0cd149bc8babafccff
 COPY --from=builder /opt/app-root/src/out/s3-reload /s3-reload
 ENTRYPOINT ["/s3-reload"]
