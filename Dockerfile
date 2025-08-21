@@ -1,4 +1,4 @@
-FROM registry.access.redhat.com/ubi9/go-toolset:1.24.6-1755529097@sha256:d711f298464714173edda413164584ea69b77e9fdbed043c76c1a73a830fb378 AS builder
+FROM registry.access.redhat.com/ubi9/go-toolset:1.24.6-1755755147@sha256:d1c1f2af6122b0ea3456844210d6d9c4d96e78c128bc02fabeadf51239202221 AS builder
 COPY . .
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o out/s3-reload s3-reload.go
 LABEL konflux.additional-tags="1.0.0"
