@@ -8,7 +8,6 @@ metadata:
     pipelinesascode.tekton.dev/cancel-in-progress: "false"
     pipelinesascode.tekton.dev/max-keep-runs: "3"
     pipelinesascode.tekton.dev/on-cel-expression: event == "push" && target_branch == "master"
-  creationTimestamp: null
   labels:
     appstudio.openshift.io/application: s3-reload-master
     appstudio.openshift.io/component: s3-reload-master
@@ -41,16 +40,12 @@ spec:
   workspaces:
   - name: workspace
     volumeClaimTemplate:
-      metadata:
-        creationTimestamp: null
       spec:
         accessModes:
         - ReadWriteOnce
         resources:
           requests:
             storage: 1Gi
-      status: {}
   - name: git-auth
     secret:
       secretName: '{{ git_auth_secret }}'
-status: {}
